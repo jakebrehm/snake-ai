@@ -191,7 +191,7 @@ class SnakeGame:
         
         self.head = Point(x, y)
 
-    def _check_for_collision(self):
+    def check_for_collision(self):
         """"""
         # Check if snake hits the boundary
         if (self.head.x > (self._width - self._BLOCK_SIZE)) or (self.head.x < 0):
@@ -243,7 +243,7 @@ class SnakeGame:
 
         # Check if game over
         game_over = False
-        if self._check_for_collision():
+        if self.check_for_collision():
             game_over = True
             return game_over, self.score
 
@@ -379,16 +379,7 @@ class SnakeGameBot(SnakeGame):
         ]
         direction_index = clockwise_directions.index(self.direction)
 
-        # if np.array_equal(action, [1, 0, 0]):
-        #     # No change in direction
-        #     new_direction = clockwise_directions[direction_index]
-        # elif np.array_equal(action, [0, 1, 0]):
-        #     # Make a right turn --> clockwise change
-        #     new_direction = clockwise_directions[(direction_index+1) % 4]
-        # else:
-        #     # Make a left turn --> counter-clockwise change
-        #     new_direction = clockwise_directions[(direction_index-1) % 4]
-
+        # 
         if np.array_equal(action, [0, 1, 0]):
             # Make a right turn --> clockwise change
             self.direction = clockwise_directions[(direction_index+1) % 4]
@@ -396,9 +387,11 @@ class SnakeGameBot(SnakeGame):
             # Make a left turn --> counter-clockwise change
             self.direction = clockwise_directions[(direction_index-1) % 4]
         
+        # 
         x = self.head.x
         y = self.head.y
 
+        # 
         if self.direction == Direction.RIGHT:
             x += self._BLOCK_SIZE
         elif self.direction == Direction.LEFT:
@@ -408,9 +401,10 @@ class SnakeGameBot(SnakeGame):
         elif self.direction == Direction.UP:
             y -= self._BLOCK_SIZE
         
+        # Change the head
         self.head = Point(x, y)
 
-    def _check_for_collision(self, point: Point=None):
+    def check_for_collision(self, point: Point=None):
         """"""
 
         # Initialize the point variable
@@ -455,7 +449,7 @@ class SnakeGameBot(SnakeGame):
         reward = 0
         game_over = False
         threshold = 100 * len(self.snake)
-        if self._check_for_collision() or (self.frame > threshold):
+        if self.check_for_collision() or (self.frame > threshold):
             game_over = True
             reward = -10
             return reward, game_over, self.score
