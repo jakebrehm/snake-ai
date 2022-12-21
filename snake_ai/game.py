@@ -9,8 +9,9 @@ Contains the code for the Snake game.
 import os
 import random
 from enum import Enum
-from typing import List
+from typing import List, Tuple
 
+import numpy
 import pygame
 
 
@@ -119,13 +120,13 @@ class SnakeGame:
         self._clock = pygame.time.Clock()
 
         # Initialize game state
+        self._initialize_game_state()
+
+    def _initialize_game_state(self):
+        """"""
+
         self._direction = Direction.RIGHT
         self._head = Point(self._width/2, self._height/2)
-        self._snake = [
-            Point(self.head.x-(0*self._BLOCK_SIZE), self.head.y),
-            Point(self.head.x-(1*self._BLOCK_SIZE), self.head.y),
-            Point(self.head.x-(2*self._BLOCK_SIZE), self.head.y),
-        ]
         self.snake = self._generate_snake(self._start_length)
 
         self._score = 0
@@ -236,7 +237,8 @@ class SnakeGame:
                 break
 
         # Move snake
-        self._move_snake(self.direction) # update the head
+        self._move_snake(self.direction)
+        # Update the head
         self.snake.insert(0, self.head)
 
         # Check if game over
@@ -341,3 +343,163 @@ class SnakeGame:
     def food(self, value: Point):
         """"""
         self._food = value
+
+
+class SnakeGameBot(SnakeGame):
+    """"""
+
+    def __init__(self, width: int=640, height: int=480, start_length: int=3):
+        """"""
+
+        # 
+        super().__init__(width=width, height=height, start_length=start_length)
+
+        # Initialize frame number
+        self._frame = 0
+    
+    def reset(self):
+        """"""
+        self._initialize_game_state()
+        self.frame = 0
+
+    def _is_valid_action(self, action: Tuple[int, int, int]):
+        """"""
+        return all(isinstance(a, int) for a in action) and sum(action) == 1
+
+    def _move_snake(self, action: Tuple[int, int, int]):
+        """"""
+
+        # Check if inputs are valid
+        if not self._is_valid_action(action):
+            raise ValueError(f"Invalid action: {action}")
+        
+        # Action: [straight, right, left]
+        clockwise_directions = [
+            Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP
+        ]
+        direction_index = clockwise_directions.index(self.direction)
+
+        # if np.array_equal(action, [1, 0, 0]):
+        #     # No change in direction
+        #     new_direction = clockwise_directions[direction_index]
+        # elif np.array_equal(action, [0, 1, 0]):
+        #     # Make a right turn --> clockwise change
+        #     new_direction = clockwise_directions[(direction_index+1) % 4]
+        # else:
+        #     # Make a left turn --> counter-clockwise change
+        #     new_direction = clockwise_directions[(direction_index-1) % 4]
+
+        if np.array_equal(action, [0, 1, 0]):
+            # Make a right turn --> clockwise change
+            self.direction = clockwise_directions[(direction_index+1) % 4]
+        elif np.array_equal(action, [0, 0, 1]):
+            # Make a left turn --> counter-clockwise change
+            self.direction = clockwise_directions[(direction_index-1) % 4]
+        
+        x = self.head.x
+        y = self.head.y
+
+        if self.direction == Direction.RIGHT:
+            x += self._BLOCK_SIZE
+        elif self.direction == Direction.LEFT:
+            x -= self._BLOCK_SIZE
+        elif self.direction == Direction.DOWN:
+            y += self._BLOCK_SIZE
+        elif self.direction == Direction.UP:
+            y -= self._BLOCK_SIZE
+        
+        self.head = Point(x, y)
+
+    def _check_for_collision(self, point: Point=None):
+        """"""
+
+        # Initialize the point variable
+        if point is None:
+            point = self.head
+
+        # Check if snake hits the boundary
+        if (point.x > (self._width - self._BLOCK_SIZE)) or (point.x < 0):
+            return True
+        if (point.y > (self._height - self._BLOCK_SIZE)) or (point.y < 0):
+            return True
+
+        # Check if snake hits itself
+        if point in self.snake[1:]:
+            return True
+        
+        # Otherwise, there was no collision
+        return False
+
+    def step(self, action: Tuple[int, int, int]):
+        """"""
+
+        # Check if inputs are valid
+        if not self._is_valid_action(action):
+            raise ValueError(f"Invalid action: {action}")
+
+        # Update frame number
+        self.frame += 1
+
+        # Collect user input
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.quit()
+                quit()
+
+        # Move snake
+        self._move_snake(action)
+        # Update the head
+        self.snake.insert(0, self.head)
+
+        # Check if game over
+        reward = 0
+        game_over = False
+        threshold = 100 * len(self.snake)
+        if self._check_for_collision() or (self.frame > threshold):
+            game_over = True
+            reward = -10
+            return reward, game_over, self.score
+
+        # Place new food or finalize move
+        if self.head == self.food:
+            self.score += 1
+            reward = 10
+            self._place_food()
+        else:
+            self.snake.pop()
+
+        # Update the pygame UI and the clock
+        self._update_ui()
+        self._update_clock_speed()
+        self.clock.tick(self._CLOCK_SPEED)
+
+        # Return game over and score
+        return reward, game_over, self.score
+
+    def play(self, print_results=True):
+        """"""
+
+        # Start the game loop
+        while True:
+            reward, game_over, score = self.step()
+            if game_over:
+                break
+        
+        # Print the final results if desired
+        if print_results:
+            print(f"Final score: {score}")
+            print(f"Final speed: {self._CLOCK_SPEED}")
+            print(f"Reward: {reward}")
+        
+        # Quit the game
+        self.quit()
+
+    @property
+    def frame(self) -> int:
+        """"""
+        return self._frame_iteration
+    
+    @frame.setter
+    def frame(self, value: int):
+        """"""
+        self._frame_iteration = value
