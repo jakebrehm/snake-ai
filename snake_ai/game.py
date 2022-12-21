@@ -8,7 +8,6 @@ Contains the code for the Snake game.
 
 import os
 import random
-from collections import namedtuple
 from enum import Enum
 from typing import List
 
@@ -16,19 +15,26 @@ import pygame
 
 
 # Initialize PyGame
-pygame.init()
+# pygame.init()
 
+pygame.display.init()
+print('initialized display')
+pygame.font.init()
+print('initialized fonts')
+# pygame.mixer.init()
+# print('initialized mixer')
+pygame.joystick.init()
+print('initialized joystick')
 
 # Get the path to the data directory
 PARENT_DIRECTORY = os.path.dirname(os.path.dirname(__file__))
 DATA_DIRECTORY = os.path.join(PARENT_DIRECTORY, 'data')
 
 # Get the path to import files in the data directory
-FONT_PATH = os.path.join(DATA_DIRECTORY, 'Roboto-Regular.ttf')
+ROBOTO_REGULAR_PATH = os.path.join(DATA_DIRECTORY, 'Roboto-Regular.ttf')
 
 # Define the game constants
 SEGMENT_SIZE = 20
-CLOCK_SPEED = 20 # make size of snake dependent on speed
 
 # Define the colors (RGB)
 BLACK = (0, 0, 0)
@@ -38,10 +44,7 @@ BLUE_1 = (0, 0, 255)
 BLUE_2 = (0, 100, 255)
 
 # Define the fonts
-roboto = pygame.font.Font(FONT_PATH, 25)
-
-# Define the namedtuple which stores point information
-Point = namedtuple('Point', 'x, y')
+roboto = pygame.font.Font(ROBOTO_REGULAR_PATH, 25)
 
 
 class Direction(Enum):
@@ -53,10 +56,55 @@ class Direction(Enum):
     DOWN = 4
 
 
+class Point:
+    """"""
+
+    def __init__(self, x: int, y: int):
+        """"""
+
+        # Store user inputs
+        self._x = int(x)
+        self._y = int(y)
+    
+    @property
+    def x(self) -> int:
+        """"""
+        return self._x
+    
+    @x.setter
+    def x(self, value: int):
+        """"""
+        self._x = int(value)
+    
+    @property
+    def y(self) -> int:
+        """"""
+        return self._y
+    
+    @y.setter
+    def y(self, value: int):
+        """"""
+        self._y = int(value)
+    
+    def __eq__(self, other: "Point"):
+        """"""
+        return (self.x == other.x) and (self.y == other.y)
+
+    def __repr__(self):
+        """"""
+        return f"Point(x={self.x}, y={self.y})"
+    
+    def __str__(self):
+        """"""
+        return f"Point({self.x}, {self.y})"
+
+
 class SnakeGame:
     """"""
 
     _GAME_TITLE = "Snake"
+    _BASE_CLOCK_SPEED = 10
+    _CLOCK_SPEED = _BASE_CLOCK_SPEED
 
     def __init__(self, width: int=640, height: int=480):
         """"""
@@ -103,7 +151,11 @@ class SnakeGame:
         pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, SEGMENT_SIZE, SEGMENT_SIZE))
         
         text = roboto.render(f"Score: {self.score}", True, WHITE)
-        self.display.blit(text, [0, 0])
+        self.display.blit(text, [5, 5])
+        
+        text = roboto.render(f"Speed: {self._CLOCK_SPEED}", True, WHITE)
+        self.display.blit(text, [5, 35])
+
         pygame.display.flip()
 
     def _move_snake(self, direction: Direction):
@@ -138,7 +190,14 @@ class SnakeGame:
         # Otherwise, there was no collision
         return False
 
-    def play_step(self):
+    def _update_clock_speed(self):
+        """"""
+        
+        # 
+        additional = self.score // 3
+        self._CLOCK_SPEED = self._BASE_CLOCK_SPEED + additional
+
+    def step(self):
         """"""
 
         # Collect user input
@@ -148,13 +207,18 @@ class SnakeGame:
                 quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    self.direction = Direction.LEFT
+                    if self.direction != Direction.RIGHT:
+                        self.direction = Direction.LEFT
                 elif event.key == pygame.K_RIGHT:
-                    self.direction = Direction.RIGHT
+                    if self.direction != Direction.LEFT:
+                        self.direction = Direction.RIGHT
                 elif event.key == pygame.K_UP:
-                    self.direction = Direction.UP
+                    if self.direction != Direction.DOWN:
+                        self.direction = Direction.UP
                 elif event.key == pygame.K_DOWN:
-                    self.direction = Direction.DOWN
+                    if self.direction != Direction.UP:
+                        self.direction = Direction.DOWN
+                break
 
         # Move snake
         self._move_snake(self.direction) # update the head
@@ -175,18 +239,41 @@ class SnakeGame:
 
         # Update the pygame UI and the clock
         self._update_ui()
-        self.clock.tick(CLOCK_SPEED)
+        self._update_clock_speed()
+        self.clock.tick(self._CLOCK_SPEED)
 
         # Return game over and score
         return game_over, self.score
+
+    def play(self, print_results=True):
+        """"""
+
+        # Start the game loop
+        while True:
+            game_over, score = self.step()
+            if game_over:
+                break
+        
+        # Print the final results if desired
+        if print_results:
+            print(f"Final score: {score}")
+            print(f"Final speed: {self._CLOCK_SPEED}")
+        
+        # Quit the game
+        self.quit()
     
+    def quit(self):
+        """"""
+
+        pygame.quit()
+
     @property
     def score(self) -> int:
         """"""
         return self._score
     
     @score.setter
-    def score(self, value):
+    def score(self, value: int):
         """"""
         self._score = value
 
@@ -211,7 +298,7 @@ class SnakeGame:
         return self._head
 
     @head.setter
-    def head(self, value):
+    def head(self, value: Point):
         """"""
         self._head = value
 
@@ -221,7 +308,7 @@ class SnakeGame:
         return self._direction
 
     @direction.setter
-    def direction(self, value):
+    def direction(self, value: Direction):
         """"""
         self._direction = value
 
@@ -231,6 +318,6 @@ class SnakeGame:
         return self._food
     
     @food.setter
-    def food(self, value):
+    def food(self, value: Point):
         """"""
         self._food = value
