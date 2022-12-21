@@ -33,15 +33,12 @@ DATA_DIRECTORY = os.path.join(PARENT_DIRECTORY, 'data')
 # Get the path to import files in the data directory
 ROBOTO_REGULAR_PATH = os.path.join(DATA_DIRECTORY, 'Roboto-Regular.ttf')
 
-# Define the game constants
-SEGMENT_SIZE = 20
-
 # Define the colors (RGB)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (200, 0, 0)
-BLUE_1 = (0, 0, 255)
-BLUE_2 = (0, 100, 255)
+LIGHT_GREEN = (0, 180, 0)
+DARK_GREEN = (0, 130, 0)
 
 # Define the fonts
 roboto = pygame.font.Font(ROBOTO_REGULAR_PATH, 25)
@@ -103,6 +100,8 @@ class SnakeGame:
     """"""
 
     _GAME_TITLE = "Snake"
+    _BLOCK_SIZE = 20
+    _BLOCK_PADDING = 4
     _BASE_CLOCK_SPEED = 10
     _CLOCK_SPEED = _BASE_CLOCK_SPEED
 
@@ -122,9 +121,9 @@ class SnakeGame:
         self._direction = Direction.RIGHT
         self._head = Point(self._width/2, self._height/2)
         self._snake = [
-            Point(self.head.x-(0*SEGMENT_SIZE), self.head.y),
-            Point(self.head.x-(1*SEGMENT_SIZE), self.head.y),
-            Point(self.head.x-(2*SEGMENT_SIZE), self.head.y),
+            Point(self.head.x-(0*self._BLOCK_SIZE), self.head.y),
+            Point(self.head.x-(1*self._BLOCK_SIZE), self.head.y),
+            Point(self.head.x-(2*self._BLOCK_SIZE), self.head.y),
         ]
 
         self._score = 0
@@ -133,8 +132,8 @@ class SnakeGame:
     
     def _place_food(self):
         """"""
-        x = random.randint(0, (self._width-SEGMENT_SIZE)//SEGMENT_SIZE) * SEGMENT_SIZE
-        y = random.randint(0, (self._height-SEGMENT_SIZE)//SEGMENT_SIZE) * SEGMENT_SIZE
+        x = random.randint(0, (self._width-self._BLOCK_SIZE)//self._BLOCK_SIZE) * self._BLOCK_SIZE
+        y = random.randint(0, (self._height-self._BLOCK_SIZE)//self._BLOCK_SIZE) * self._BLOCK_SIZE
         self.food = Point(x, y)
         if self.food in self.snake:
             self._place_food()
@@ -145,10 +144,18 @@ class SnakeGame:
         self.display.fill(BLACK)
 
         for point in self.snake:
-            pygame.draw.rect(self.display, BLUE_1, pygame.Rect(point.x, point.y, SEGMENT_SIZE, SEGMENT_SIZE))
-            pygame.draw.rect(self.display, BLUE_2, pygame.Rect(point.x+4, point.y+4, 12, 12))
+            pygame.draw.rect(self.display, DARK_GREEN, pygame.Rect(
+                point.x, point.y, self._BLOCK_SIZE, self._BLOCK_SIZE
+            ))
+            inner_block_size = self._BLOCK_SIZE-2*self._BLOCK_PADDING
+            pygame.draw.rect(self.display, LIGHT_GREEN, pygame.Rect(
+                point.x+self._BLOCK_PADDING, point.y+self._BLOCK_PADDING,
+                inner_block_size, inner_block_size
+            ))
         
-        pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, SEGMENT_SIZE, SEGMENT_SIZE))
+        pygame.draw.rect(self.display, RED, pygame.Rect(
+            self.food.x, self.food.y, self._BLOCK_SIZE, self._BLOCK_SIZE
+        ))
         
         text = roboto.render(f"Score: {self.score}", True, WHITE)
         self.display.blit(text, [5, 5])
@@ -165,22 +172,22 @@ class SnakeGame:
         y = self.head.y
 
         if direction == Direction.RIGHT:
-            x += SEGMENT_SIZE
+            x += self._BLOCK_SIZE
         elif direction == Direction.LEFT:
-            x -= SEGMENT_SIZE
+            x -= self._BLOCK_SIZE
         elif direction == Direction.DOWN:
-            y += SEGMENT_SIZE
+            y += self._BLOCK_SIZE
         elif direction == Direction.UP:
-            y -= SEGMENT_SIZE
+            y -= self._BLOCK_SIZE
         
         self.head = Point(x, y)
 
     def _check_for_collision(self):
         """"""
         # Check if snake hits the boundary
-        if (self.head.x > (self._width - SEGMENT_SIZE)) or (self.head.x < 0):
+        if (self.head.x > (self._width - self._BLOCK_SIZE)) or (self.head.x < 0):
             return True
-        if (self.head.y > (self._height - SEGMENT_SIZE)) or (self.head.y < 0):
+        if (self.head.y > (self._height - self._BLOCK_SIZE)) or (self.head.y < 0):
             return True
 
         # Check if snake hits itself
