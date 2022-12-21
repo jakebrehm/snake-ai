@@ -105,12 +105,13 @@ class SnakeGame:
     _BASE_CLOCK_SPEED = 10
     _CLOCK_SPEED = _BASE_CLOCK_SPEED
 
-    def __init__(self, width: int=640, height: int=480):
+    def __init__(self, width: int=640, height: int=480, start_length: int=3):
         """"""
         
         # Store user inputs
         self._width = width
         self._height = height
+        self._start_length = start_length
 
         # Initialize display
         self._display = pygame.display.set_mode((self._width, self._height))
@@ -125,11 +126,18 @@ class SnakeGame:
             Point(self.head.x-(1*self._BLOCK_SIZE), self.head.y),
             Point(self.head.x-(2*self._BLOCK_SIZE), self.head.y),
         ]
+        self.snake = self._generate_snake(self._start_length)
 
         self._score = 0
         self._food = None
         self._place_food()
-    
+
+    def _generate_snake(self, length: int) -> List[Point]:
+        """"""
+
+        x, y = self.head.x, self.head.y
+        return [Point(x-(i*self._BLOCK_SIZE), y) for i in range(length)]
+
     def _place_food(self):
         """"""
         x = random.randint(0, (self._width-self._BLOCK_SIZE)//self._BLOCK_SIZE) * self._BLOCK_SIZE
@@ -298,6 +306,11 @@ class SnakeGame:
     def snake(self) -> List[Point]:
         """"""
         return self._snake
+
+    @snake.setter
+    def snake(self, value: List[Point]):
+        """"""
+        self._snake = value
 
     @property
     def head(self) -> Point:
