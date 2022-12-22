@@ -11,7 +11,7 @@ import random
 from enum import Enum
 from typing import List, Tuple
 
-import numpy
+import numpy as np
 import pygame
 
 
@@ -52,6 +52,17 @@ class Direction(Enum):
     LEFT = 2
     UP = 3
     DOWN = 4
+
+
+class Action(Enum):
+
+    GO_STRAIGHT = [1, 0, 0]
+    GO_RIGHT = [0, 1, 0]
+    GO_LEFT = [0, 0, 1]
+
+    # GO_STRAIGHT = 1
+    # GO_RIGHT = 2
+    # GO_LEFT = 3
 
 
 class Point:
@@ -362,16 +373,8 @@ class SnakeGameBot(SnakeGame):
         self._initialize_game_state()
         self.frame = 0
 
-    def _is_valid_action(self, action: Tuple[int, int, int]):
+    def _move_snake(self, action: Action):
         """"""
-        return all(isinstance(a, int) for a in action) and sum(action) == 1
-
-    def _move_snake(self, action: Tuple[int, int, int]):
-        """"""
-
-        # Check if inputs are valid
-        if not self._is_valid_action(action):
-            raise ValueError(f"Invalid action: {action}")
         
         # Action: [straight, right, left]
         clockwise_directions = [
@@ -380,10 +383,10 @@ class SnakeGameBot(SnakeGame):
         direction_index = clockwise_directions.index(self.direction)
 
         # 
-        if np.array_equal(action, [0, 1, 0]):
+        if action == Action.GO_RIGHT:
             # Make a right turn --> clockwise change
             self.direction = clockwise_directions[(direction_index+1) % 4]
-        elif np.array_equal(action, [0, 0, 1]):
+        elif action == Action.GO_LEFT:
             # Make a left turn --> counter-clockwise change
             self.direction = clockwise_directions[(direction_index-1) % 4]
         
@@ -405,6 +408,13 @@ class SnakeGameBot(SnakeGame):
         self.head = Point(x, y)
 
     def check_for_collision(self, point: Point=None):
+        """Wrapper around _check_for_collision().
+        
+        This is done so the original method can still be overwritten.
+        """
+        return self._check_for_collision(point)
+
+    def _check_for_collision(self, point: Point=None):
         """"""
 
         # Initialize the point variable
@@ -424,12 +434,8 @@ class SnakeGameBot(SnakeGame):
         # Otherwise, there was no collision
         return False
 
-    def step(self, action: Tuple[int, int, int]):
+    def step(self, action: Action):
         """"""
-
-        # Check if inputs are valid
-        if not self._is_valid_action(action):
-            raise ValueError(f"Invalid action: {action}")
 
         # Update frame number
         self.frame += 1
@@ -491,9 +497,14 @@ class SnakeGameBot(SnakeGame):
     @property
     def frame(self) -> int:
         """"""
-        return self._frame_iteration
+        return self._frame
     
     @frame.setter
     def frame(self, value: int):
         """"""
-        self._frame_iteration = value
+        self._frame = value
+    
+    @property
+    def block_size(self) -> int:
+        """"""
+        return self._BLOCK_SIZE
