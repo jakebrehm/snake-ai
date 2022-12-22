@@ -18,14 +18,14 @@ from .helper import plot
 from .model import Linear_QNet, QTrainer
 
 
-def train():
+def train(speed: int=60):
     """"""
     scores = []
     mean_scores = []
     total_score = 0
     record = 0
     agent = Agent()
-    game = SnakeGameBot()
+    game = SnakeGameBot(base_clock_speed=speed)
 
     while True:
         # Get old state
@@ -56,11 +56,6 @@ def train():
             if score > record:
                 record = score
                 agent.model.save()
-            
-            # Print the results
-            print(f"Game {agent.n_games}")
-            print(f"Score: {score}")
-            print(f"Record: {record}")
 
             # Plot results
             scores.append(score)
@@ -68,6 +63,12 @@ def train():
             mean_score = total_score / agent.n_games
             mean_scores.append(mean_score)
             plot(scores, mean_scores)
+            
+            # Print the results
+            print(f"Game {agent.n_games}")
+            print(f"Score: {score}")
+            print(f"Mean score: {mean_score}")
+            print(f"Record: {record}")
 
 
 class State:
@@ -274,40 +275,7 @@ class Agent:
         direction_up = (game.direction == Direction.UP)
         direction_down = (game.direction == Direction.DOWN)
 
-        # state = [
-        #     # Danger straight
-        #     (direction_right and game.check_for_collision(point_right)) or
-        #     (direction_left and game.check_for_collision(point_left)) or
-        #     (direction_up and game.check_for_collision(point_up)) or
-        #     (direction_down and game.check_for_collision(point_down)),
-            
-        #     # Danger right
-        #     (direction_up and game.check_for_collision(point_right)) or
-        #     (direction_down and game.check_for_collision(point_left)) or
-        #     (direction_left and game.check_for_collision(point_up)) or
-        #     (direction_right and game.check_for_collision(point_down)),
-
-        #     # Danger left
-        #     (direction_down and game.check_for_collision(point_right)) or
-        #     (direction_up and game.check_for_collision(point_left)) or
-        #     (direction_right and game.check_for_collision(point_up)) or
-        #     (direction_left and game.check_for_collision(point_down)),
-
-        #     # Move direction
-        #     direction_left,
-        #     direction_right,
-        #     direction_up,
-        #     direction_down,
-
-        #     # Food location
-        #     game.food.x < game.head.x,
-        #     game.food.x > game.head.x,
-        #     game.food.y < game.head.y,
-        #     game.food.y > game.head.y,
-        # ]
-
-        # return np.array(state, dtype=int)
-
+        # Create the state object
         state = State()
 
         state.danger_straight = (
@@ -341,6 +309,7 @@ class Agent:
         state.food_up = game.food.y < game.head.y
         state.food_down = game.food.y > game.head.y
 
+        # Return the state object
         return state
 
     def remember(self,
@@ -376,20 +345,6 @@ class Agent:
 
     def get_action(self, state: State) -> Action:
         """"""
-        
-        # # Perform random moves (tradeoff exploration/exploitation)
-        # self.epsilon = 80 - self.n_games
-        # final_move = [0, 0, 0]
-        # if random.randint(0, 200) < self.epsilon:
-        #     move = random.randint(0, 2)
-        #     final_move[move] = 1
-        # else:
-        #     state_tensor = touch.tensor(state.get(), dtype=torch.float)
-        #     prediction = self.model.predict(state_tensor)
-        #     move = torch.argmax(prediction).item()
-        #     final_move[move] = 1
-        
-        # return final_move
 
         # Perform random moves (tradeoff exploration/exploitation)
         self.epsilon = self._EPISILON_START - self.n_games

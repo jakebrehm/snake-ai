@@ -359,8 +359,17 @@ class SnakeGame:
 class SnakeGameBot(SnakeGame):
     """"""
 
-    def __init__(self, width: int=640, height: int=480, start_length: int=3):
+    def __init__(self,
+        width: int=640,
+        height: int=480,
+        start_length: int=3,
+        base_clock_speed: int=60,
+    ):
         """"""
+
+        # Set clock speeds
+        self._BASE_CLOCK_SPEED = base_clock_speed
+        self._CLOCK_SPEED = self._BASE_CLOCK_SPEED
 
         # 
         super().__init__(width=width, height=height, start_length=start_length)
