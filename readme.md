@@ -6,9 +6,9 @@ A custom version of the classic snake game, played either manually or by a neura
 
 The following are the main libraries that are required before running the project:
 
-- [pygame]()
-- [pytorch]()
-- [matplotlib]()
+- [pygame](https://github.com/pygame/pygame)
+- [PyTorch](https://github.com/pytorch/pytorch)
+- [matplotlib](https://github.com/matplotlib/matplotlib)
 
 ## Getting started
 
@@ -26,7 +26,7 @@ python3 main.py
 
 ## Creating the game
 
-The game was created using [pygame]().
+The game was created using [pygame](https://github.com/pygame/pygame).
 
 ## About the model
 
