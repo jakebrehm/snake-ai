@@ -24,9 +24,14 @@ pip3 install -r requirements.txt
 python3 main.py
 ```
 
-## Creating the game
+## About the game
 
-The game was created using [pygame](https://github.com/pygame/pygame).
+The game is a custom implementation of the classic Snake game, and it was created using [pygame](https://github.com/pygame/pygame).
+
+To play the game manually, use the `-m` or `--manual` command line arguments:
+```
+python3 main.py -m
+```
 
 ## About the model
 
