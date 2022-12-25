@@ -59,6 +59,11 @@ These outputs are used to determined the next move of the snake.
 
 ## Training results
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/jakebrehm/snake-ai/master/img/demo.gif"
+  alt="Snake AI Demo"/>
+</p>
+
 ## Future improvements
 
 - Make the game prettier and easier to look at for long periods of time.

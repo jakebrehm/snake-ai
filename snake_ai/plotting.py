@@ -28,17 +28,20 @@ def add(scores, mean_scores):
     # Clear the current figure
     plt.clf()
 
+    # Use alternative theme
+    plt.style.use('seaborn-v0_8-darkgrid')
+
     # Add labels to the plot
     plt.title('Training...')
     plt.xlabel('Number of Games')
     plt.ylabel('Score')
 
     # Plot the scores
-    plt.plot(scores)
-    plt.plot(mean_scores)
+    plt.scatter(list(range(1, len(scores)+1)), scores, c="blue")
+    plt.plot(mean_scores, c="red")
 
     # Set axis limits
-    plt.ylim(ymin=0)
+    plt.ylim(ymin=-0.05)
 
     # Add text to the plot showing the latest values
     plt.text(len(scores)-1, scores[-1], str(scores[-1]))
