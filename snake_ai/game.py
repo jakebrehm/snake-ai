@@ -13,19 +13,11 @@ from typing import List, Tuple
 
 import numpy as np
 import pygame
+from dataclasses import dataclass
 
 
 # Initialize PyGame
-# pygame.init()
-
-pygame.display.init()
-print('initialized display')
-pygame.font.init()
-print('initialized fonts')
-# pygame.mixer.init()
-# print('initialized mixer')
-pygame.joystick.init()
-print('initialized joystick')
+pygame.init()
 
 # Get the path to the data directory
 PARENT_DIRECTORY = os.path.dirname(os.path.dirname(__file__))
@@ -42,12 +34,11 @@ LIGHT_GREEN = (0, 180, 0)
 DARK_GREEN = (0, 130, 0)
 
 # Define the fonts
-roboto = pygame.font.Font(ROBOTO_REGULAR_PATH, 25)
+roboto = pygame.font.Font(ROBOTO_REGULAR_PATH, 20)
 
 
 class Direction(Enum):
-    """"""
-
+    """Stores the direction of the snake."""
     RIGHT = 1
     LEFT = 2
     UP = 3
@@ -55,61 +46,21 @@ class Direction(Enum):
 
 
 class Action(Enum):
-
+    """Representation of possible actions for the snake to take."""
     GO_STRAIGHT = [1, 0, 0]
     GO_RIGHT = [0, 1, 0]
     GO_LEFT = [0, 0, 1]
 
-    # GO_STRAIGHT = 1
-    # GO_RIGHT = 2
-    # GO_LEFT = 3
 
-
+@dataclass
 class Point:
-    """"""
-
-    def __init__(self, x: int, y: int):
-        """"""
-
-        # Store user inputs
-        self._x = int(x)
-        self._y = int(y)
-    
-    @property
-    def x(self) -> int:
-        """"""
-        return self._x
-    
-    @x.setter
-    def x(self, value: int):
-        """"""
-        self._x = int(value)
-    
-    @property
-    def y(self) -> int:
-        """"""
-        return self._y
-    
-    @y.setter
-    def y(self, value: int):
-        """"""
-        self._y = int(value)
-    
-    def __eq__(self, other: "Point"):
-        """"""
-        return (self.x == other.x) and (self.y == other.y)
-
-    def __repr__(self):
-        """"""
-        return f"Point(x={self.x}, y={self.y})"
-    
-    def __str__(self):
-        """"""
-        return f"Point({self.x}, {self.y})"
+    """Store coordinates for a point on the game screen."""
+    x: int
+    y: int
 
 
 class SnakeGame:
-    """"""
+    """Plays the classic snake game."""
 
     _GAME_TITLE = "Snake"
     _BLOCK_SIZE = 20
@@ -118,7 +69,7 @@ class SnakeGame:
     _CLOCK_SPEED = _BASE_CLOCK_SPEED
 
     def __init__(self, width: int=640, height: int=480, start_length: int=3):
-        """"""
+        """Initializes the SnakeGame instance."""
         
         # Store user inputs
         self._width = width
@@ -134,35 +85,48 @@ class SnakeGame:
         self._initialize_game_state()
 
     def _initialize_game_state(self):
-        """"""
+        """Set up the game."""
 
+        # The snake should be moving right when the game starts
         self._direction = Direction.RIGHT
+        # Start the snake in the middle of the game
         self._head = Point(self._width/2, self._height/2)
+        # Start the snake with the specified length
         self.snake = self._generate_snake(self._start_length)
 
+        # Reset the score and place food
         self._score = 0
         self._food = None
         self._place_food()
 
     def _generate_snake(self, length: int) -> List[Point]:
-        """"""
+        """Generate the initial snake with variable body length."""
 
         x, y = self.head.x, self.head.y
         return [Point(x-(i*self._BLOCK_SIZE), y) for i in range(length)]
 
     def _place_food(self):
-        """"""
-        x = random.randint(0, (self._width-self._BLOCK_SIZE)//self._BLOCK_SIZE) * self._BLOCK_SIZE
-        y = random.randint(0, (self._height-self._BLOCK_SIZE)//self._BLOCK_SIZE) * self._BLOCK_SIZE
+        """Places the food in a new, appropriate location."""
+        
+        # Get the size of each game block
+        block = self._BLOCK_SIZE
+
+        # Randomly determine a new location for the food
+        x = random.randint(0, (self._width-block)//block) * block
+        y = random.randint(0, (self._height-block)//block) * block
         self.food = Point(x, y)
+        
+        # Make sure the new food isn't inside the snake's body
         if self.food in self.snake:
             self._place_food()
 
     def _update_ui(self):
-        """"""
+        """Updates the game's UI."""
 
+        # Draw the black background first
         self.display.fill(BLACK)
 
+        # Draw each part of the snake on the screen
         for point in self.snake:
             pygame.draw.rect(self.display, DARK_GREEN, pygame.Rect(
                 point.x, point.y, self._BLOCK_SIZE, self._BLOCK_SIZE
@@ -173,24 +137,31 @@ class SnakeGame:
                 inner_block_size, inner_block_size
             ))
         
+        # Draw the food on the screen
         pygame.draw.rect(self.display, RED, pygame.Rect(
             self.food.x, self.food.y, self._BLOCK_SIZE, self._BLOCK_SIZE
         ))
         
+        # Add the current score to the upper left corner
         text = roboto.render(f"Score: {self.score}", True, WHITE)
+        text.set_alpha(100)
         self.display.blit(text, [5, 5])
-        
+        # Add the current speed to the upper left corner
         text = roboto.render(f"Speed: {self._CLOCK_SPEED}", True, WHITE)
-        self.display.blit(text, [5, 35])
+        text.set_alpha(100)
+        self.display.blit(text, [5, 30])
 
+        # Update the entire display
         pygame.display.flip()
 
     def _move_snake(self, direction: Direction):
-        """"""
+        """Move the head of the snake depending on the selected direction."""
         
+        # Get current coordinates of snake's head
         x = self.head.x
         y = self.head.y
 
+        # Modify coordinates depending on snake's direction
         if direction == Direction.RIGHT:
             x += self._BLOCK_SIZE
         elif direction == Direction.LEFT:
@@ -200,10 +171,12 @@ class SnakeGame:
         elif direction == Direction.UP:
             y -= self._BLOCK_SIZE
         
+        # Change the head coordinates to the new values
         self.head = Point(x, y)
 
     def check_for_collision(self):
-        """"""
+        """Check if there are any collisions."""
+
         # Check if snake hits the boundary
         if (self.head.x > (self._width - self._BLOCK_SIZE)) or (self.head.x < 0):
             return True
@@ -218,14 +191,14 @@ class SnakeGame:
         return False
 
     def _update_clock_speed(self):
-        """"""
+        """Updates the current clock speed using an arbitrary algorithm."""
         
-        # 
+        # Arbitrarily divide the score by three, then add to the base speed
         additional = self.score // 3
         self._CLOCK_SPEED = self._BASE_CLOCK_SPEED + additional
 
     def step(self):
-        """"""
+        """Play the next game step."""
 
         # Collect user input
         for event in pygame.event.get():
@@ -270,11 +243,11 @@ class SnakeGame:
         self._update_clock_speed()
         self.clock.tick(self._CLOCK_SPEED)
 
-        # Return game over and score
+        # Return whether or not the game is over, and the score
         return game_over, self.score
 
     def play(self, print_results=True):
-        """"""
+        """Start the game loop."""
 
         # Start the game loop
         while True:
@@ -291,69 +264,74 @@ class SnakeGame:
         self.quit()
     
     def quit(self):
-        """"""
+        """Quits the game."""
 
         pygame.quit()
 
     @property
     def score(self) -> int:
-        """"""
+        """Gets the score."""
         return self._score
     
     @score.setter
     def score(self, value: int):
-        """"""
+        """Sets the score."""
         self._score = value
 
     @property
     def display(self) -> pygame.Surface:
-        """"""
+        """Gets the display variable."""
         return self._display
 
     @property
     def clock(self) -> pygame.time.Clock:
-        """"""
+        """Gets the clock variable."""
         return self._clock
 
     @property
     def snake(self) -> List[Point]:
-        """"""
+        """Gets the snake list."""
         return self._snake
 
     @snake.setter
     def snake(self, value: List[Point]):
-        """"""
+        """Sets the snake list."""
         self._snake = value
 
     @property
     def head(self) -> Point:
-        """"""
+        """Gets the head."""
         return self._head
 
     @head.setter
     def head(self, value: Point):
-        """"""
+        """Sets the head."""
         self._head = value
 
     @property
     def direction(self) -> Direction:
-        """"""
+        """Gets the snake's direction."""
         return self._direction
 
     @direction.setter
     def direction(self, value: Direction):
-        """"""
+        """Sets the snake's direction."""
         self._direction = value
 
     @property
     def food(self) -> Point:
-        """"""
+        """Gets the food's position."""
         return self._food
     
     @food.setter
     def food(self, value: Point):
-        """"""
+        """Sets the food's position."""
         self._food = value
+
+    @property
+    def block_size(self) -> int:
+        """Gets the size of a game block."""
+        return self._BLOCK_SIZE
 
 
 class SnakeGameBot(SnakeGame):
@@ -365,33 +343,34 @@ class SnakeGameBot(SnakeGame):
         start_length: int=3,
         base_clock_speed: int=60,
     ):
-        """"""
+        """Initializes the SnakeGameBot instance."""
 
         # Set clock speeds
         self._BASE_CLOCK_SPEED = base_clock_speed
         self._CLOCK_SPEED = self._BASE_CLOCK_SPEED
 
-        # 
+        # Initialize the parent class
         super().__init__(width=width, height=height, start_length=start_length)
 
         # Initialize frame number
         self._frame = 0
     
     def reset(self):
-        """"""
+        """Reset to the game's original state."""
         self._initialize_game_state()
         self.frame = 0
 
     def _move_snake(self, action: Action):
-        """"""
+        """Move the head of the snake depending on the selected direction."""
         
-        # Action: [straight, right, left]
+        # Define list of clockwise directions
         clockwise_directions = [
             Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP
         ]
+        # Get index of current direction
         direction_index = clockwise_directions.index(self.direction)
 
-        # 
+        # Change direction if necessary
         if action == Action.GO_RIGHT:
             # Make a right turn --> clockwise change
             self.direction = clockwise_directions[(direction_index+1) % 4]
@@ -399,11 +378,11 @@ class SnakeGameBot(SnakeGame):
             # Make a left turn --> counter-clockwise change
             self.direction = clockwise_directions[(direction_index-1) % 4]
         
-        # 
+        # Get current coordinates of snake's head
         x = self.head.x
         y = self.head.y
 
-        # 
+        # Modify coordinates depending on snake's direction
         if self.direction == Direction.RIGHT:
             x += self._BLOCK_SIZE
         elif self.direction == Direction.LEFT:
@@ -413,7 +392,7 @@ class SnakeGameBot(SnakeGame):
         elif self.direction == Direction.UP:
             y -= self._BLOCK_SIZE
         
-        # Change the head
+        # Change the head coordinates to the new values
         self.head = Point(x, y)
 
     def check_for_collision(self, point: Point=None):
@@ -424,7 +403,7 @@ class SnakeGameBot(SnakeGame):
         return self._check_for_collision(point)
 
     def _check_for_collision(self, point: Point=None):
-        """"""
+        """Check if there are any collisions."""
 
         # Initialize the point variable
         if point is None:
@@ -444,7 +423,7 @@ class SnakeGameBot(SnakeGame):
         return False
 
     def step(self, action: Action):
-        """"""
+        """Play the next game step."""
 
         # Update frame number
         self.frame += 1
@@ -482,11 +461,11 @@ class SnakeGameBot(SnakeGame):
         self._update_clock_speed()
         self.clock.tick(self._CLOCK_SPEED)
 
-        # Return game over and score
+        # Return the reward, whether or not the game is over, and the score
         return reward, game_over, self.score
 
     def play(self, print_results=True):
-        """"""
+        """Start the game loop."""
 
         # Start the game loop
         while True:
@@ -505,15 +484,10 @@ class SnakeGameBot(SnakeGame):
 
     @property
     def frame(self) -> int:
-        """"""
+        """Gets the current frame."""
         return self._frame
     
     @frame.setter
     def frame(self, value: int):
-        """"""
+        """Sets the current frame."""
         self._frame = value
-    
-    @property
-    def block_size(self) -> int:
-        """"""
-        return self._BLOCK_SIZE
