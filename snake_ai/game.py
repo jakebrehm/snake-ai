@@ -8,13 +8,12 @@ Contains the code for the Snake game.
 
 import os
 import random
+from dataclasses import dataclass
 from enum import Enum
 from typing import List, Tuple
 
 import numpy as np
 import pygame
-from dataclasses import dataclass
-
 
 # Initialize PyGame
 pygame.init()

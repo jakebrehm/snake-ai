@@ -6,13 +6,13 @@ Contains the code for the model.
 """
 
 
+import os
 from typing import List, Union
 
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F
-import os
+import torch.optim as optim
 
 
 class Model(nn.Module):
