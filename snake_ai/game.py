@@ -150,7 +150,8 @@ class SnakeGame:
         text.set_alpha(100)
         self.display.blit(text, [5, 30])
 
-        # Update the entire display
+    def _update_display(self):
+        """Updates the entire display."""
         pygame.display.flip()
 
     def _move_snake(self, direction: Direction):
@@ -239,6 +240,7 @@ class SnakeGame:
 
         # Update the pygame UI and the clock
         self._update_ui()
+        self._update_display()
         self._update_clock_speed()
         self.clock.tick(self._CLOCK_SPEED)
 
@@ -359,6 +361,15 @@ class SnakeGameBot(SnakeGame):
         self._initialize_game_state()
         self.frame = 0
 
+    def _update_ai_ui(self, threshold: int):
+        """Updates the game's UI elements that are AI-specific."""
+        
+        # Add the remaining number of moves to the bottom left corner
+        message = f"Moves remaining: {threshold-self.frame}"
+        text = roboto.render(message, True, WHITE)
+        text.set_alpha(100)
+        self.display.blit(text, [5, self._height-25])
+
     def _move_snake(self, action: Action):
         """Move the head of the snake depending on the selected direction."""
         
@@ -457,6 +468,8 @@ class SnakeGameBot(SnakeGame):
 
         # Update the pygame UI and the clock
         self._update_ui()
+        self._update_ai_ui(threshold)
+        self._update_display()
         self._update_clock_speed()
         self.clock.tick(self._CLOCK_SPEED)
 

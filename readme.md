@@ -66,13 +66,9 @@ These outputs are used to determined the next move of the snake.
 
 ## Future improvements
 
-- Make the game prettier and easier to look at for long periods of time.
-- Display the remaining number of moves on the screen.
-- Make text slightly transparent or move the text outside of the game window entirely.
-- Improve the look of the graph.
 - Save the results to a csv file for post hoc analysis and/or visualization.
-- The snake will not become better after a certain point because it nevers learns how to not trap itself in its own body. To avoid this, add inputs to the neural network so that it can be aware of when the snake is in danger of colliding into itself.
-- Allow for the ability to press a button to kill the snake/stop the training process, so that the user doesn't have to manually close the window
+- The snake will not become better after a certain point because it nevers learns how to not trap itself in its own body. Figure out a way to avoid this.
+- Allow for the ability to press a button to kill the snake/stop the training process, so that the user doesn't have to manually close the window.
 
 ## Authors
 
