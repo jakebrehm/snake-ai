@@ -15,7 +15,7 @@ import torch
 
 from .game import Direction, Action, Point, SnakeGameBot
 from .helper import plot
-from .model import Linear_QNet, QTrainer
+from .model import Model, Trainer
 
 
 def train(speed: int=60):
@@ -55,7 +55,6 @@ def train(speed: int=60):
 
             if score > record:
                 record = score
-                agent.model.save()
 
             # Plot results
             scores.append(score)
@@ -249,11 +248,11 @@ class Agent:
         self.epsilon = 0 # controls randomness
         self.gamma = 0.9 # discount rate, <1, normal ~0.8-0.9
         self.memory = collections.deque(maxlen=self._MAX_MEMORY)
-        # self.model = Linear_QNet(11, 256, 3) # TODO: generalize this
-        self.model = Linear_QNet(
+        # self.model = Model(11, 256, 3) # TODO: generalize this
+        self.model = Model(
             State.SIZE, self._HIDDEN_SIZE, len(Action)
         ) # TODO: generalize this
-        self.trainer = QTrainer(
+        self.trainer = Trainer(
             self.model, learning_rate=self._LEARNING_RATE, gamma=self.gamma
         )
 
